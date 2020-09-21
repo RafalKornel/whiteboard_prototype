@@ -5,6 +5,8 @@
     <title>Tablica</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet"> 
 
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
@@ -13,7 +15,11 @@
 <body>
     <main>
         <h1 id="logo">TABLICA</h1>
-        <input type="button" value="clear">
+        <div id="btnContainer"> 
+            <input id="clear" type="button" value="clear">
+            <input id="redraw" type="button" value="redraw">
+        </div>  
+
         <canvas></canvas>
 
         <script src="src/main.js"></script>

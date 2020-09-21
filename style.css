@@ -2,12 +2,13 @@ body {
     margin: 0 0;
     overflow: hidden;
     background-color: rgb(212, 212, 212);
+    font-family: 'Roboto', sans-serif;
 }
 canvas {
     width: 100%;
     height: 100%;
     position: absolute;
-    background-color: white;
+    background-color: #eeeeee;
 }
 
 #logo {
@@ -18,8 +19,10 @@ canvas {
     z-index: 2;
 }
 
-input {
+#btnContainer {
     position: absolute; 
     right: 0;
     z-index: 2;
+    display: flex;
+    flex-direction: column;
 }
