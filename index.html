@@ -18,10 +18,18 @@
         <div id="btnContainer"> 
             <input id="clear" type="button" value="clear">
             <input id="redraw" type="button" value="redraw">
+
+            <select name="modes" id="modes">
+              <option value="draw">Draw</option>
+              <option value="select">Select</option>
+            </select> 
         </div>  
 
         <canvas></canvas>
 
+        <script src="src/point.js"></script>
+        <script src="src/figure.js"></script>
+        <script src="src/plane.js"></script>
         <script src="src/main.js"></script>
     </main>
 </body>

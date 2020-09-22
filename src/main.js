@@ -3,133 +3,86 @@ const canvas = document.querySelector("canvas");
 const c = canvas.getContext("2d");
 const clearBtn = document.getElementById("clear");
 const redrawBtn = document.getElementById("redraw");
-const fps       = 30;
-const deltaTime = 1000/fps;
-var figures = [];
-const resMod = 2;
-let i = 0;
+const modes = document.getElementById("modes");
+var curentMode = modes.options[modes.selectedIndex].value;
 
+const plane = new Plane(30, 1);
+const deltaTime = 1000/plane.fps;
 
 
 function setSize() {
-    canvas.width = window.innerWidth  * resMod;
-    canvas.height = window.innerHeight  * resMod;
+    canvas.width = window.innerWidth  * plane.resMod;
+    canvas.height = window.innerHeight  * plane.resMod;
+    plane.updateCenter();
 }
 
 setSize();
 window.addEventListener("resize", setSize);
 clearBtn.onclick = () => { c.clearRect(0, 0, canvas.width, canvas.height); }
 redrawBtn.onclick = () => { 
-    for (let i in figures) {
-        figures[i].drawFigure();
-    }
+    plane.drawFigures();
 }
 
-
-class Figure {
-    constructor(type, width = 10) {
-        this.points = [];
-        this.type = type;
-        this.strokeWidth = width;
-    }
-
-    draw() {
-       /* Draws smooth curve between two latest points added to points stack, 
-        * or one point if only clicked. Uses bezier quadratic curve function 
-        * built in html canvas.
-        */
-
-        c.lineWidth = this.strokeWidth;
-
-
-        if (this.points.length == 1) {
-            c.beginPath();
-            c.moveTo(this.points[0].x, this.points[0].y)
-            this.drawPoint();
-        }
-
-        else {
-            let lp = this.points.slice(this.points.length-2); // lp -> lastPoints
-            let pMid = new Point( lp[0].x + (lp[1].x-lp[0].x)/2, lp[0].y + (lp[1].y - lp[0].y)/2, (lp[0].i + lp[1].i)/2 );
-            c.quadraticCurveTo(lp[0].x, lp[0].y, pMid.x, pMid.y);
-            c.moveTo(pMid.x, pMid.y);
-            c.stroke();
-        }
-    }
-
-    drawPoint() {
-       /* This function draws 'point', which is
-        * basically very small square
-        */
-       
-        let w = this.strokeWidth;
-        
-        //c.fillStyle = "#ff0000"
-
-        c.fillRect(this.points[this.points.length - 1].x - w/2, this.points[this.points.length - 1].y - w/2, w, w)
-    }
-
-    drawLine(P0 = null, P1 = null) {
-       /* This function draws a line between two specified 
-        * in argument points. If the function is called without 
-        * arguments, then it will draw line between most recent
-        * points contained in this.points
-        */
-
-        c.beginPath();
-
-        if (P0 == null || P1 == null) {
-            P0 = this.points[this.points.length - 2];
-            P1 = this.points[this.points.length - 1];
-        }
-
-        c.moveTo(P0.x, P0.y);
-        c.lineTo(P1.x, P1.y);
-        c.stroke();
-    }
-
-    drawFigure() {
-       /* Redraws whole figure, can be useful when needed to
-        * draw figure from file or json
-        */
-
-        c.moveTo(0, 0);
-        let newStack = this.points;
-        this.points = [];
-        for (let i in newStack) {
-            this.points.push(newStack[i]);
-            this.draw();
-        }
-    }
-}
-
-class Point {
-    constructor(x, y, i) {
-        this.x = x;
-        this.y = y;
-        this.i = i;
-    }
+modes.onchange = () => {
+    curentMode = modes.options[modes.selectedIndex].value;
 }
 
 
 var mouseDown = false;
 var fig = new Figure("line");
-document.onmousedown = () => {
-    console.log("down")
-    fig = new Figure("line");
+var initMouseCoords = {x:0, y:0}
+document.onmousedown = (e) => {
     mouseDown = true;
+    let pos = plane.mousePosition(e)
+    console.log("down")
+    console.log(pos);
+
+    if (curentMode == "draw") {
+        fig = new Figure("line");    
+        
+        fig.addPoint(new Point(pos.x, pos.y, fig.i++))
+        plane.draw(fig);
+
+    }
+    else if (curentMode == "select") {
+        console.log("selecting");
+        initMouseCoords = pos;
+    }
 }
 document.onmouseup = () => {
-    console.log('up');
     mouseDown = false;
-    i = 0;
-    figures.push(fig);
+    console.log('up');
+
+    if (curentMode == "draw") { 
+        plane.addFigure(fig);
+    }
 }
 
 document.onmousemove = (e) => {
     
     if(!mouseDown) return;
+    
+    console.log(curentMode);
+    let pos = plane.mousePosition(e)
 
-    fig.points.push(new Point(e.clientX * resMod, e.clientY * resMod, i++));
-    fig.draw();
+    if (curentMode == "draw") {
+        fig.points.push(new Point(pos.x, pos.y, fig.i++));
+        plane.draw(fig);
+    }
+
+    else if (curentMode == "select") {
+        console.log(plane.center);
+        let relative = {x:pos.x - initMouseCoords.x, y:pos.y - initMouseCoords.y};
+        let newCenter = {x: relative.x + plane.initCenter.x, y: relative.y + plane.initCenter.y};
+        plane.setCenter(newCenter);
+        c.clearRect(0, 0, canvas.width, canvas.height);
+        plane.drawFigures();
+    }
 }
+
+
+/*
+window.onwheel = (e) => {
+    console.log(e.deltaY)
+    plane.resMod += e.deltaY/100;
+}*/
