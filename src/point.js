@@ -4,4 +4,16 @@ class Point {
         this.y = y;
         this.i = i;
     }
+
+    add(p) {
+        this.x += p.x;
+        this.y += p.y;
+        //this.i = (this.i + p.i)/2;
+    }
+
+    subtract(p) {
+        this.x -= p.x;
+        this.y -= p.y;
+        //this.i = (this.i + p.i)/2;
+    }
 }

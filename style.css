@@ -9,6 +9,7 @@ canvas {
     height: 100%;
     position: absolute;
     background-color: #eeeeee;
+    z-index: 1;
 }
 
 #logo {

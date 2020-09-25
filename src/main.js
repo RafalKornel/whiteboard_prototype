@@ -6,30 +6,41 @@ const modes     = document.querySelector("#modes");
 
 
 // Variables
-const c = canvas.getContext("2d");
-var control = true;
-var curentMode = modes.options[modes.selectedIndex].value;
+const c     = canvas.getContext("2d");
 const plane = new Plane(30, 1);
-const deltaTime = 1000/plane.fps;
-var mouseDown = false;
-var fig = new Figure("line");
-var initMouseCoords = {x:0, y:0}
-var frameCount = 0;
 
-function setSize() {
-    canvas.width = window.innerWidth  * plane.resMod;
-    canvas.height = window.innerHeight  * plane.resMod;
-    plane.updateCenter();
+var control         = true;
+var curentMode      = modes.options[modes.selectedIndex].value;
+var mouseDown       = false;
+var fig             = new Figure("line");
+var initMouseCoords = new Point(0, 0, -1);
+var frameCount      = 0;
+
+function setCanvasDiameters() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 }
 
-setSize();
+function initializeCanvas() {
+    setCanvasDiameters();
+    plane.updateCenter();
+    plane.updateDiameters();
+}
+
+initializeCanvas();
 
 
 // Events
-window.onresize = setSize;
+window.onresize = () => {
+    setCanvasDiameters();
+    plane.updateDiameters();
+    plane.updateCenter();
+    plane.redrawFigures();
+}
+
 clearBtn.onclick = () => { c.clearRect(0, 0, canvas.width, canvas.height); }
 redrawBtn.onclick = () => { 
-    plane.drawFigures();
+    plane.redrawFigures();
 }
 
 modes.onchange = () => {
@@ -38,9 +49,9 @@ modes.onchange = () => {
 
 
 // Mouse events
-document.onmousedown = (e) => {
+canvas.onmousedown = (e) => {
     mouseDown = true;
-    let pos = plane.mousePosition(e)
+    let pos = plane.mouseToGlobal(e)
     console.log("down")
     console.log(pos);
 
@@ -73,7 +84,7 @@ document.onmousemove = (e) => {
     if(!mouseDown) return;
     
     //console.log(curentMode);
-    let pos = plane.mousePosition(e);
+    let pos = plane.mouseToGlobal(e);
 
     if (curentMode == "draw") {
         fig.addPoint(new Point(pos.x, pos.y, fig.i++));
@@ -81,12 +92,10 @@ document.onmousemove = (e) => {
     }
 
     else if (curentMode == "select") {
-        //console.log(plane.center);
-        let relative = {x:pos.x - initMouseCoords.x, y:pos.y - initMouseCoords.y};
-        let newCenter = {x: relative.x + plane.initCenter.x, y: relative.y + plane.initCenter.y};
+        let relative = new Point(pos.x - initMouseCoords.x, pos.y - initMouseCoords.y, -1);
+        let newCenter = new Point(relative.x + plane.prevCenter.x, relative.y + plane.prevCenter.y, -1);
         plane.setCenter(newCenter);
-        c.clearRect(0, 0, canvas.width, canvas.height);
-        plane.drawFigures();
+        plane.redrawFigures();
     }
 
     frameCount++;
@@ -94,12 +103,11 @@ document.onmousemove = (e) => {
 
 
 window.onwheel = (e) => {
-    console.log(plane.resMod);
 
     plane.resMod -= e.deltaY/100;
     if (plane.resMod < plane.minResMod) { plane.resMod = 0.5}
     if (plane.resMod > plane.maxResMod) { plane.resMod = 2  }
 
-    setSize();
-    plane.drawFigures();
+
+    plane.redrawFigures();
 }

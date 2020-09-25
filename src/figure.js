@@ -17,10 +17,9 @@ class Figure {
         this.points.push(p);
     }
 
-    drawPoint(o, p = null) {
+    drawPoint1(o, p = null) {
        /* This function draws 'point', which is
-        * basically very small square
-        */
+        * basically very small square */
        
         let w = this.strokeWidth;
         //c.fillStyle = "#ff0000";

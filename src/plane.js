@@ -3,24 +3,49 @@ class Plane {
         this.figures = [];
         this.activeFigures = [];
         this.i = 0;
-        this.fps = fps;
         this.resMod = resolutionModifier;
-        this.center = { x: canvas.width/2,
-                        y: canvas.height/2};
-        this.initCenter = this.center;
+        this.center = new Point(canvas.width/2, canvas.height/2, 0);
+        this.width = 0;
+        this.height = 0;
+        this.prevCenter = this.center;
 
         this.maxResMod = 2;
         this.minResMod = 0.5;
     }
 
-    mousePosition(e) {
+    mouseToGlobal(e) {
         /* Returns mouse position in new coordinate system, 
          * that is relative to plane's center property,   
-         * which can be modified
-         */
+         * which can be modified */
 
-        return {x: e.clientX * this.resMod - this.center.x,
-                y: e.clientY * this.resMod - this.center.y}
+        let pos = new Point(e.clientX, e.clientY, -1);
+
+        return this.localToGlobal(pos);
+    }
+
+    mouseToLocal(e) {
+        /* Returns mouse position in local coordinate 
+         * system, that is relative to window.  */
+
+        return new Point(e.clientX, e.clientY, -1);
+    }
+
+    globalToLocal(p) {
+        /* Conversion between coordinate systems, 
+         * maps global (relative to abstract origin point - this.center) 
+         * to local (relative to window origin) */
+
+        let newP = new Point( (p.x + this.center.x)/this.resMod , (p.y + this.center.y)/this.resMod , p.i);
+        return newP;
+    }
+
+    localToGlobal(p) {
+        /* Conversion between coordinate systems, 
+         * maps local (relative to window) point to 
+         * global coordinate system */
+
+        let newP = new Point( p.x * this.resMod - this.center.x, p.y * this.resMod - this.center.y, p.i);
+        return newP;
     }
 
     addFigure(fig) {
@@ -30,23 +55,27 @@ class Plane {
     drawFigures() {
         for (let i in this.figures) {
             this.draw(this.figures[i]);
-            //this.figures[i].drawFigure(this.center);
         }
     }
 
     redrawFigures() {
-        c.clearRect(0, 0, c.widht, c.height);
+        c.clearRect(0, 0, canvas.width, canvas.height);
+        
+        this.drawCenterPoint();
+
         for (let i in this.figures) {
             this.draw(this.figures[i]);
-            //this.figures[i].drawFigure(this.center);
         }
     }   
 
     draw(fig) {
-        if (fig.points.length < 2) return fig.drawPoint(this.center); 
+        if (fig.points.length < 2) {
+            this.drawPoint(fig.points[0]); 
+            return;
+        }
 
-        let P0 = {x:(fig.points[0].x + this.center.x) , y:(fig.points[0].y + this.center.y), i: fig.points[0].i};
-        let P1 = {x:(fig.points[1].x + this.center.x) , y:(fig.points[1].y + this.center.y), i: fig.points[1].i};
+        let P0 = new Point( (fig.points[0].x), (fig.points[0].y), fig.points[0].i);
+        let P1 = new Point( (fig.points[1].x), (fig.points[1].y), fig.points[1].i);
         let midPoint;
 
         c.moveTo(P0.x, P0.y);
@@ -57,14 +86,62 @@ class Plane {
 
             midPoint = new Point( P0.x + (P1.x - P0.x)/2, P0.y + (P1.y - P0.y)/2, (P0.i + P1.i)/2);
 
-            c.quadraticCurveTo(P0.x, P0.y, midPoint.x, midPoint.y);
-            c.moveTo(midPoint.x, midPoint.y);
+            let P0Loc = this.globalToLocal(P0);
+            let midPointLoc = this.globalToLocal(midPoint);
+
+            c.quadraticCurveTo(P0Loc.x, P0Loc.y, midPointLoc.x, midPointLoc.y);
+            c.moveTo(midPointLoc.x, midPointLoc.y);
+
             P0 = P1;
-            P1 = {x:(fig.points[i].x + this.center.x), y:(fig.points[i].y + this.center.y), i:fig.points[i].i};
+            P1 = new Point( (fig.points[i].x), (fig.points[i].y), fig.points[i].i);
         }
         
         c.stroke();
     }
+
+    drawPoint(p) {
+        let pLoc = this.globalToLocal(p);
+        let w = 10;
+        c.fillStyle = "#ff0000"
+
+        c.fillRect(pLoc.x - w/2, pLoc.y - w/2, w, w);
+    }
+
+    drawCenterPoint() {
+        let pointFig = new Figure("point", this.resMod);
+        pointFig.points = [this.center];
+        this.draw(pointFig);
+    }
+
+    getClosestFigure(x, y) {
+
+    }
+
+    setInitialCenter() {
+        this.center = new Point(canvas.width/2, canvas.height/2, -1);
+    }
+
+    updateCenter() {
+        let pos = this.globalToLocal(new Point(0, 0, -1));
+        this.center = pos;
+    }
+
+    updateDiameters() {
+        this.width = canvas.width;
+        this.height = canvas.height;
+    }
+
+    setCenter(pos) {
+        this.center = pos;
+        this.prevCenter = this.center;
+    } 
+}
+
+
+
+
+/* 
+
 
     drawGrid() {
         let i_max = canvas.width % 100;
@@ -95,17 +172,4 @@ class Plane {
         }
     }
 
-    getClosestFigure(x, y) {
-
-    }
-
-    updateCenter() {
-        this.center = { x: canvas.width/2,
-                        y: canvas.height/2};
-    }
-
-    setCenter(pos) {
-        this.center = pos;
-        this.initCenter = this.center;
-    } 
-}
+    */
