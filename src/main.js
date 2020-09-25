@@ -4,6 +4,7 @@ const clearBtn  = document.querySelector("#clear");
 const redrawBtn = document.querySelector("#redraw");
 const modes     = document.querySelector("#modes");
 
+
 // Variables
 const c = canvas.getContext("2d");
 var control = true;
@@ -23,6 +24,7 @@ function setSize() {
 
 setSize();
 
+
 // Events
 window.onresize = setSize;
 clearBtn.onclick = () => { c.clearRect(0, 0, canvas.width, canvas.height); }
@@ -34,6 +36,7 @@ modes.onchange = () => {
     curentMode = modes.options[modes.selectedIndex].value;
 }
 
+
 // Mouse events
 document.onmousedown = (e) => {
     mouseDown = true;
@@ -42,7 +45,7 @@ document.onmousedown = (e) => {
     console.log(pos);
 
     if (curentMode == "draw") {
-        fig = new Figure("line");    
+        fig = new Figure("line", plane.resMod);    
         
         fig.addPoint(new Point(pos.x, pos.y, fig.i++))
         plane.draw(fig);
@@ -54,6 +57,7 @@ document.onmousedown = (e) => {
     }
 }
 
+
 document.onmouseup = () => {
     mouseDown = false;
     console.log('up');
@@ -63,15 +67,16 @@ document.onmouseup = () => {
     }
 }
 
+
 document.onmousemove = (e) => {
     
     if(!mouseDown) return;
     
     //console.log(curentMode);
-    let pos = plane.mousePosition(e)
+    let pos = plane.mousePosition(e);
 
     if (curentMode == "draw") {
-        fig.points.push(new Point(pos.x, pos.y, fig.i++));
+        fig.addPoint(new Point(pos.x, pos.y, fig.i++));
         plane.draw(fig);
     }
 
@@ -88,8 +93,13 @@ document.onmousemove = (e) => {
 }
 
 
-/*
 window.onwheel = (e) => {
-    console.log(e.deltaY)
-    plane.resMod += e.deltaY/100;
-}*/
+    console.log(plane.resMod);
+
+    plane.resMod -= e.deltaY/100;
+    if (plane.resMod < plane.minResMod) { plane.resMod = 0.5}
+    if (plane.resMod > plane.maxResMod) { plane.resMod = 2  }
+
+    setSize();
+    plane.drawFigures();
+}
