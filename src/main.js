@@ -104,10 +104,17 @@ document.onmousemove = (e) => {
 
 window.onwheel = (e) => {
 
+    let prevPos = plane.mouseToGlobal(e);
+
     plane.resMod -= e.deltaY/100;
     if (plane.resMod < plane.minResMod) { plane.resMod = 0.5}
     if (plane.resMod > plane.maxResMod) { plane.resMod = 2  }
 
+    let curPos = plane.mouseToGlobal(e);
+    let diff   = curPos.subtract(prevPos);
+
+    plane.setCenter(plane.center.add(diff));
 
     plane.redrawFigures();
+
 }

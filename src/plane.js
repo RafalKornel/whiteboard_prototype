@@ -61,7 +61,6 @@ class Plane {
     redrawFigures() {
         c.clearRect(0, 0, canvas.width, canvas.height);
         
-        this.drawCenterPoint();
 
         for (let i in this.figures) {
             this.draw(this.figures[i]);
@@ -107,11 +106,12 @@ class Plane {
         c.fillRect(pLoc.x - w/2, pLoc.y - w/2, w, w);
     }
 
+    /*  // dont use it its bugged
     drawCenterPoint() {
-        let pointFig = new Figure("point", this.resMod);
+        let pointFig = new Figure("point", 1);
         pointFig.points = [this.center];
         this.draw(pointFig);
-    }
+    } */
 
     getClosestFigure(x, y) {
 
